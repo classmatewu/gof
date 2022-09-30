@@ -1,0 +1,127 @@
+<!-- 利用命令模式实现一个简易版的五子棋 -->
+<button id="play">下棋</button>
+<button id="revertOne">撤销上一步</button>
+<button id="revertFive">撤销近五步</button>
+<button id="playTMatrix">托管自动走T字阵</button>
+<button id="playback">本局回放</button>
+<button id="chess">申请和棋</button>
+<button id="fail">认输</button>
+
+<script>
+	/** 定义Receiver **/
+	const playAction = {
+		play: (position) => {
+			console.log('在指定位置(position)处绘制一个棋子')
+		},
+    revert: (position) => {
+      console.log('在指定位置(position)处擦除一个棋子')
+    }
+	}
+	const resultAction = {
+		chess: () => {
+      console.log('申请和棋，求求了')
+    },
+    fail: () => {
+      console.log('我认输了')
+    }
+	}
+	
+  /** 定义具体命令 **/
+  // 下棋命令
+  const PlayCommand = function(receiver, position) {
+    this.receiver = receiver
+    this.position = position
+  }
+  PlayCommand.prototype.execute = function() {
+    this.receiver.play(this.position)
+  }
+  PlayCommand.prototype.undo = function() {
+    this.receiver.revert(this.position)
+  }
+  
+  // 和棋命令
+  const ChessCommand = function(receiver) {
+    this.receiver = receiver
+  }
+  ChessCommand.prototype.execute = function() {
+    this.receiver.chess()
+  }
+  
+  // 认输命令
+  const FailCommand = function(receiver) {
+    this.receiver = receiver
+  }
+  FailCommand.prototype.execute = function() {
+    this.receiver.fail()
+  }
+  
+  /** 主程序 和 Invoker **/
+  const playBtn = $('play')
+	const revertOneBtn = $('revertOne')
+	const revertFiveBtn = $('revertFive')
+  const playbackBtn = $('playback')
+	const playTMatrixBtn = $('playTMatrix')
+	const chessBtn = $('chess')
+	const failBtn = $('fail')
+  
+  const commandStack = 	[] // 历史命令队列
+
+  // 下棋
+  playBtn.click((event) => {
+    const x = event.pageX
+    const y = event.pageY
+    const position = [x, y]
+    const playCommand = new PlayCommand(playAction, position)
+    playCommand.execute()
+    commandStack.push(playCommand)
+  })
+  
+  // 撤销上一步
+  revertOneBtn.click(() => {
+    const lastCommand = commandStack.pop()
+    lastCommand?.undo()
+  })
+  
+  // 撤销近五步
+  revertFiveBtn.click(() => {
+    for (let i = 0; i < 5; i++) {
+      const lastCommand = commandStack.pop()
+    	lastCommand?.undo()
+    }
+  }) 
+  
+  // 本局回放
+  playbackBtn.click(() => {
+    while(commandStack.length) {
+      const stepCommand = macroQueue.shift()
+      stepCommand.execute()
+    }
+  })
+  
+  const macroQueue = [] // 宏
+  const positionT1 = [1, 1]
+  const positionT2 = [20, 20]
+  const positionT3 = [100, 78]
+  const playCommandT1 = new PlayCommand(playAction, positionT1)
+  const playCommandT2 = new PlayCommand(playAction, positionT1)
+	const playCommandT3 = new PlayCommand(playAction, positionT1)
+  macroQueue.push(playCommandT1, playCommandT2, playCommandT3)
+  
+  // 托管自动走T字阵
+  playTMatrixBtn.click(() => {
+    while (macroQueue.length) {
+      const stepCommand = macroQueue.shift()
+      stepCommand.execute()
+    }
+  })
+  
+  const setCommand = (btn, command) => {
+    btn.click(() => {
+      command.execute()
+    })
+  }
+  const chessCommand = new ChessCommand()
+  const failCommand = new FailCommand()
+  setCommand(chessBtn, chessCommand) // 和棋
+  setCommand(failBtn, failCommand) // 认输
+</script>

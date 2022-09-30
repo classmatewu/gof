@@ -1,0 +1,48 @@
+<button id="play">下棋</button>
+<button id="revertOne">撤销上一步</button>
+<button id="revertFive">撤销近五步</button>
+
+<script>
+  const playBtn = $('play')
+	const revertOneBtn = $('revertOne')
+
+  const game = {
+    registryCmd: (cmd, cb) => {
+      cmdMap[cmd] = cb
+    },
+    callCmd: (cmd) => {
+      cmdMap[cmd] && cmdMap[cmd]()
+    }
+  }
+
+  const cmdMap = {}
+  const queue = []
+  const paintFn = (position) => {
+    console.log('play position');
+  }
+  const deleteFn = (position) => {
+    console.log('revertOne');
+  }
+
+  $('.btn').click((e) => {
+    var cmd = $(e.target).attr('data-cmd');
+    game.callCmd(cmd);
+  });
+
+  game.registryCmd('play', (position) => {
+    paintFn()
+    queue.push(position)
+  })
+
+  game.registryCmd('revertOne', () => {
+    const position = queue.pop(position)
+    deleteFn(position)
+  })
+
+  game.registryCmd('revertFive', () => {
+    for (let i = 0; i < 5; i++) {
+      const position = queue.pop(position)
+      deleteFn(position)
+    }
+  })
+</script>
