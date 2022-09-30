@@ -54,8 +54,29 @@
   FailCommand.prototype.execute = function() {
     this.receiver.fail()
   }
+
+  // T字阵宏任务命令
+  const MacroCommand = function() {
+    this.commandList = []
+  }
+  MacroCommand.prototype.add = function(command) {
+    this.commandList.push(command)
+  }
+  MacroCommand.prototype.execute = function() {
+    while (this.commandList.length) {
+      const command = this.commandList.shift()
+      command?.execute()
+    }
+  }
+
+  /** 定义 Invoker **/
+  const setCommand = (btn, command) => {
+    btn.click(() => {
+      command.execute()
+    })
+  }
   
-  /** 主程序 和 Invoker **/
+  /** 下达命令 **/
   const playBtn = $('play')
 	const revertOneBtn = $('revertOne')
 	const revertFiveBtn = $('revertFive')
@@ -63,7 +84,7 @@
 	const playTMatrixBtn = $('playTMatrix')
 	const chessBtn = $('chess')
 	const failBtn = $('fail')
-  
+
   const commandStack = 	[] // 历史命令队列
 
   // 下棋
@@ -98,30 +119,24 @@
     }
   })
   
-  const macroQueue = [] // 宏
+  // 利用宏命令实现托管自动走T字阵
   const positionT1 = [1, 1]
   const positionT2 = [20, 20]
   const positionT3 = [100, 78]
   const playCommandT1 = new PlayCommand(playAction, positionT1)
   const playCommandT2 = new PlayCommand(playAction, positionT1)
 	const playCommandT3 = new PlayCommand(playAction, positionT1)
-  macroQueue.push(playCommandT1, playCommandT2, playCommandT3)
-  
-  // 托管自动走T字阵
-  playTMatrixBtn.click(() => {
-    while (macroQueue.length) {
-      const stepCommand = macroQueue.shift()
-      stepCommand.execute()
-    }
-  })
-  
-  const setCommand = (btn, command) => {
-    btn.click(() => {
-      command.execute()
-    })
-  }
+  const macroCommand = new MacroCommand()
+  macroCommand.add(playCommandT1)
+  macroCommand.add(playCommandT2)
+  macroCommand.add(playCommandT3)
+  setCommand(playTMatrixBtn, macroCommand)
+
+  // 和棋
   const chessCommand = new ChessCommand()
+  setCommand(chessBtn, chessCommand)
+
+  // 认输
   const failCommand = new FailCommand()
-  setCommand(chessBtn, chessCommand) // 和棋
-  setCommand(failBtn, failCommand) // 认输
+  setCommand(failBtn, failCommand) 
 </script>
