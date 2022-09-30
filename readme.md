@@ -1,3 +1,3 @@
-# gof
+# gof change log
 
-## 命令模式
+## add 命令模式
